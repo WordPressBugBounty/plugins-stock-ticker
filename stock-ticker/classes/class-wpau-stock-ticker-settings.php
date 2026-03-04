@@ -145,6 +145,24 @@ class Wpau_Stock_Ticker_Settings {
 		);
 
 		add_settings_field(
+			$this->option_name . 'avapientitlement',
+			__( 'API Entitlement', 'stock-ticker' ),
+			array( &$this, 'settings_field_select' ),
+			$this->slug,
+			'wpau_stock_ticker',
+			array(
+				'field'       => $this->option_name . '[avapientitlement]',
+				'description' => __( 'If you have applied for an entitlement through a premium API key, select the entitlement you would like to use. Otherwise, select End of Day.', 'stock-ticker' ),
+				'items'       => array(
+					''         => esc_attr__( 'End of Day', 'stock-ticker' ),
+					'delayed'  => esc_attr__( '15 Minute Delay', 'stock-ticker' ),
+					'realtime' => esc_attr__( 'Realtime', 'stock-ticker' ),
+				),
+				'value'       => $this->defaults['avapientitlement'],
+			)
+		);
+
+		add_settings_field(
 			$this->option_name . 'all_symbols',
 			__( 'All Stock Symbols', 'stock-ticker' ),
 			array( &$this, 'settings_field_input_text' ),
@@ -778,6 +796,11 @@ class Wpau_Stock_Ticker_Settings {
 						$value = 5;
 					}
 					break;
+				case 'avapientitlement':
+					if ( ! in_array( (string) $value, array( '', 'delayed', 'realtime' ), true ) ) {
+						$value = '';
+					}
+					break;
 				case 'symbols':
 					// Always uppercase
 					$value = Wpau_Stock_Ticker::sanitize_symbols( $value );
@@ -807,7 +830,15 @@ class Wpau_Stock_Ticker_Settings {
 					}
 					break;
 				case 'template':
-					$value = strip_tags( $value, '<span><em><strong>' );
+					$allowed_html = array(
+						'span'   => array(
+							'class' => array(),
+							'style' => array(),
+						),
+						'em'     => array(),
+						'strong' => array(),
+					);
+					$value        = wp_kses( $value, $allowed_html );
 					break;
 				case 'cache_timeout':
 					$value = (int) $value;
